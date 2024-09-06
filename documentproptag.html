@@ -1,0 +1,52 @@
+<html>
+<head>
+<title> My page </title>
+<script type="text/javascript">
+function myFunc()
+{
+
+ var list = document.getElementsByTagName('div')[1].children;
+ var list1 = document.getElementsByTagName('div')[1].childNodes;
+ alert(list.length);
+
+ for(var i=0;i<list.length;i++)
+ {
+ alert("The child of div is "+list[i]);
+ }
+   alert(list1.length);
+
+ for(var i=0;i<list1.length;i++)
+ {
+ alert("The childnodes of div is "+list1[i]);
+ }
+ var x=document.body.children;
+ document.write("The length is "+x.length +"<br>");
+ for(var i=0;i<x.length;i++)
+ {
+ document.write("The ans is "+x[i] +"<br>");
+ }
+ }
+</script>
+</head>
+<body>
+<h1 id="title">This is main title</h1>
+<p>hello hai</p>
+<form name="FirstForm">
+<input type="button" value="Click Me" onclick="myFunc();" />
+<input type="text">
+</form>
+<div>dfg
+<p>sdf</p><!---hello--->
+<a href="https://www.google.com">ffg</a>
+</div>
+<div>dfg
+<p></p>
+<p></p>
+<p></p>
+<a href="https://www.google.com">ffg</a>
+</div>
+<a href="https://www.google.com">ffg</a>
+<img src="flower.jpg" alt="ttt"/>
+<img src="flower1.jpg" alt="sf"/>
+</body>
+</html>
