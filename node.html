@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html>
+<body>
+<h1>Inserting Textnode and list</h1>
+<div id="d"></div>
+<ul id="myList">
+  <li>Python</li>
+  <li>Operating System</li>
+</ul>
+
+<p>Click "Append" to append an item to the end of the list:</p>
+
+<button onclick="fun1()">Append</button>
+
+<script>
+function fun1() {
+	var n1 = document.createElement("ul");
+	var n2 = document.createElement("li");
+	var tn = document.createTextNode("Computer Networks");
+	
+	n2.appendChild(tn);
+	n1.appendChild(n2);
+	
+	document.getElementById("d").appendChild(n1);
+	var node = document.createElement("li");
+	var textnode = document.createTextNode("Script");
+	node.appendChild(textnode);
+	document.getElementById("myList").appendChild(node);
+}
+</script>
+
+</body>
+</html>
