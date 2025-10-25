@@ -1,0 +1,456 @@
+﻿* Frontend
+   * Public
+      * index.html
+
+
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Full Stack App</title>
+  </head>
+  <body>
+    <div id="root"></div>
+  </body>
+</html>
+
+
+        -        Src
+                -        App.css
+         {
+ .App {
+  text-align: center;
+}
+
+
+.App-logo {
+  height: 40vmin;
+  pointer-events: none;
+}
+
+
+@media (prefers-reduced-motion: no-preference) {
+  .App-logo {
+    animation: App-logo-spin infinite 20s linear;
+  }
+}
+
+
+.App-header {
+  background-color: #282c34;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  font-size: calc(10px + 2vmin);
+  color: white;
+}
+
+
+.App-link {
+  color: #61dafb;
+}
+
+
+@keyframes App-logo-spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+
+
+
+* App.js
+
+
+import { useEffect, useState } from 'react';
+import './index.css';
+
+
+function App() {
+  const [items, setItems] = useState([]);
+  const [name, setName] = useState('');
+  const [quantity, setQuantity] = useState('');
+  const [editId, setEditId] = useState(null);
+
+
+  // Fetch items
+  const fetchItems = () => {
+    fetch('/api/items')
+      .then(res => res.json())
+      .then(data => setItems(data))
+      .catch(err => console.error(err));
+  };
+
+
+  useEffect(() => {
+    fetchItems();
+  }, []);
+
+
+  // Add or Update
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    const body = { name, quantity: Number(quantity) };
+
+
+    if (editId) {
+      fetch(`/api/items/${editId}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body)
+      })
+        .then(() => {
+          fetchItems();
+          setName('');
+          setQuantity('');
+          setEditId(null);
+        });
+    } else {
+      fetch('/api/items', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body)
+      })
+        .then(() => {
+          fetchItems();
+          setName('');
+          setQuantity('');
+        });
+    }
+  };
+
+
+  // Edit
+  const handleEdit = (item) => {
+    setName(item.name);
+    setQuantity(item.quantity);
+    setEditId(item._id);
+  };
+
+
+  // Delete
+  const handleDelete = (id) => {
+    fetch(`/api/items/${id}`, { method: 'DELETE' })
+      .then(() => fetchItems());
+  };
+
+
+  return (
+    <div className="app-container">
+      <h1>Inventory Dashboard</h1>
+
+
+      <form className="form-container" onSubmit={handleSubmit}>
+        <input
+          type="text"
+          placeholder="Item Name"
+          value={name}
+          onChange={(e) => setName(e.target.value)}
+          required
+        />
+        <input
+          type="number"
+          placeholder="Quantity"
+          value={quantity}
+          onChange={(e) => setQuantity(e.target.value)}
+          required
+        />
+        <button type="submit">{editId ? 'Update Item' : 'Add Item'}</button>
+      </form>
+
+
+      <div className="cards-container">
+        {items.map(item => (
+          <div className="card" key={item._id}>
+            <h2>{item.name}</h2>
+            <p>Quantity: {item.quantity}</p>
+            <div className="card-buttons">
+              <button className="edit" onClick={() => handleEdit(item)}>Edit</button>
+              <button className="delete" onClick={() => handleDelete(item._id)}>Delete</button>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+
+export default App;
+
+
+
+
+Apptest.js
+import { render, screen } from '@testing-library/react';
+import App from './App';
+
+
+test('renders learn react link', () => {
+  render(<App />);
+  const linkElement = screen.getByText(/learn react/i);
+  expect(linkElement).toBeInTheDocument();
+});
+
+
+
+
+* Index.css
+
+
+body {
+  margin: 0;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  background: linear-gradient(135deg, #74ebd5, #acb6e5);
+}
+
+
+.app-container {
+  max-width: 1000px;
+  margin: 50px auto;
+  padding: 20px;
+  color: #333;
+}
+
+
+h1 {
+  text-align: center;
+  color: #fff;
+  margin-bottom: 30px;
+  font-size: 3rem;
+  text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+}
+
+
+.form-container {
+  display: flex;
+  justify-content: center;
+  gap: 15px;
+  margin-bottom: 40px;
+  flex-wrap: wrap;
+}
+
+
+.form-container input {
+  padding: 12px 15px;
+  border-radius: 8px;
+  border: none;
+  font-size: 1rem;
+  outline: none;
+  width: 200px;
+  box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+}
+
+
+.form-container button {
+  padding: 12px 25px;
+  border-radius: 8px;
+  border: none;
+  background-color: #ff6b81;
+  color: white;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: 0.3s;
+  box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+}
+
+
+.form-container button:hover {
+  background-color: #ff4757;
+}
+
+
+.cards-container {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 25px;
+}
+
+
+.card {
+  background: #fff;
+  padding: 20px;
+  border-radius: 12px;
+  box-shadow: 0 8px 20px rgba(0,0,0,0.15);
+  transition: transform 0.3s, box-shadow 0.3s;
+  text-align: center;
+}
+
+
+.card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 12px 25px rgba(0,0,0,0.2);
+}
+
+
+.card h2 {
+  margin: 0 0 10px;
+  color: #333;
+}
+
+
+.card p {
+  font-size: 1.1rem;
+  color: #555;
+  margin-bottom: 15px;
+}
+
+
+.card-buttons {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+}
+
+
+button.edit {
+  background-color: #ffa502;
+  color: white;
+  padding: 6px 12px;
+  border-radius: 6px;
+  border: none;
+  cursor: pointer;
+  transition: 0.3s;
+}
+
+
+button.edit:hover {
+  background-color: #eccc68;
+}
+
+
+button.delete {
+  background-color: #ff4757;
+  color: white;
+  padding: 6px 12px;
+  border-radius: 6px;
+  border: none;
+  cursor: pointer;
+  transition: 0.3s;
+}
+
+
+button.delete:hover {
+  background-color: #ff6b81;
+}
+
+
+* index.js
+
+
+import React from 'react';
+import ReactDOM from 'react-dom/client';
+import './index.css';
+import App from './App';
+
+
+const root = ReactDOM.createRoot(document.getElementById('root'));
+root.render(
+  <React.StrictMode>
+    <App />
+  </React.StrictMode>
+);
+
+
+
+
+
+
+* Backend
+   * Models
+      * Item.js
+      * const mongoose = require('mongoose');
+      *       * const itemSchema = new mongoose.Schema({
+      *   name: { type: String, required: true },
+      *   quantity: { type: Number, required: true }
+      * });
+      *       * module.exports = mongoose.model('Item', itemSchema);
+      * 
+
+* Index.js
+
+
+const express = require('express');
+const mongoose = require('mongoose');
+const cors = require('cors');
+const Item = require('./models/Item');
+
+
+const app = express();
+const PORT = 5000;
+
+
+// Middleware
+app.use(cors());
+app.use(express.json());
+
+
+// Connect to local MongoDB
+mongoose.connect('mongodb://127.0.0.1:27017/mydatabase', {
+  useNewUrlParser: true,
+  useUnifiedTopology: true
+})
+.then(() => console.log('MongoDB connected'))
+.catch(err => console.error('MongoDB connection error:', err));
+
+
+// Routes
+
+
+// GET all items
+app.get('/api/items', async (req, res) => {
+  try {
+    const items = await Item.find();
+    res.json(items);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+
+// POST a new item
+app.post('/api/items', async (req, res) => {
+  try {
+    const newItem = new Item(req.body);
+    const savedItem = await newItem.save();
+    res.json(savedItem);
+  } catch (err) {
+    res.status(400).json({ error: err.message });
+  }
+});
+
+
+// PUT update an item by id
+app.put('/api/items/:id', async (req, res) => {
+  try {
+    const updatedItem = await Item.findByIdAndUpdate(
+      req.params.id,
+      req.body,
+      { new: true }
+    );
+    res.json(updatedItem);
+  } catch (err) {
+    res.status(400).json({ error: err.message });
+  }
+});
+
+
+// DELETE an item by id
+app.delete('/api/items/:id', async (req, res) => {
+  try {
+    await Item.findByIdAndDelete(req.params.id);
+    res.json({ message: 'Item deleted' });
+  } catch (err) {
+    res.status(400).json({ error: err.message });
+  }
+});
+
+
+app.listen(PORT, () => console.log(`Server running on port ${PORT}`));-
