@@ -435,11 +435,11 @@ root.render(
    * Models
       * Item.js
       * const mongoose = require('mongoose');
-      *       * const itemSchema = new mongoose.Schema({
+      * const itemSchema = new mongoose.Schema({
       *   name: { type: String, required: true },
       *   quantity: { type: Number, required: true }
       * });
-      *       * module.exports = mongoose.model('Item', itemSchema);
+      * module.exports = mongoose.model('Item', itemSchema);
       * 
 
 * Index.js
@@ -523,3 +523,4 @@ app.delete('/api/items/:id', async (req, res) => {
 
 
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));-
+
