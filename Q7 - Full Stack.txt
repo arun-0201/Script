@@ -1,4 +1,72 @@
-﻿* Frontend
+npx create-react-app frontend
+npm init -y
+npm install express mongoose cors
+
+import { useEffect, useState } from "react";
+
+function App() {
+  const [items, setItems] = useState([]);
+  const [newItem, setNewItem] = useState({ name: "", quantity: "" });
+
+  // Load all items from MongoDB when page opens
+  useEffect(() => {
+    fetch("http://localhost:5000/api/items")
+      .then((res) => res.json())
+      .then((data) => setItems(data))
+      .catch((err) => console.error("Error fetching items:", err));
+  }, []);
+
+  // Add to MongoDB
+  const addItem = () => {
+    if (!newItem.name.trim() || !newItem.quantity.trim()) return;
+
+    fetch("http://localhost:5000/api/items", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(newItem),
+    })
+      .then((res) => res.json())
+      .then((data) => {
+        setItems([...items, data]); // update UI
+        setNewItem({ name: "", quantity: "" }); // clear input
+      })
+      .catch((err) => console.error("Error adding item:", err));
+  };
+
+  return (
+    <div style={{ padding: 20 }}>
+      <h1>Inventory (MongoDB)</h1>
+
+      {/* INPUTS */}
+      <input
+        type="text"
+        placeholder="Item Name"
+        value={newItem.name}
+        onChange={(e) => setNewItem({ ...newItem, name: e.target.value })}
+      />
+      <input
+        type="number"
+        placeholder="Quantity"
+        value={newItem.quantity}
+        onChange={(e) => setNewItem({ ...newItem, quantity: e.target.value })}
+      />
+      <button onClick={addItem}>Add Item</button>
+
+      {/* SHOW ITEMS */}
+      <ul>
+        {items.map((item) => (
+          <li key={item._id}>
+            {item.name} — {item.quantity}
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+}
+
+export default App;
+
+* Frontend
    * Public
       * index.html
 
@@ -451,6 +519,7 @@ app.delete('/api/items/:id', async (req, res) => {
     res.status(400).json({ error: err.message });
   }
 });
+
 
 
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));-
