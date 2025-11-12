@@ -1,0 +1,290 @@
+src/app.js
+import React from "react";
+import { BrowserRouter as Router, Route, Routes, Link } from "reactrouter-dom";
+import AddOrder from "./pages/AddOrder";
+import SearchOrder from "./pages/SearchOrder";
+import DeleteOrder from "./pages/DeleteOrder";
+import UpdateOrder from "./pages/UpdateOrder";
+function App() {
+ return (
+ <Router>
+ <nav>
+ <Link to="/add">Add Order</Link> |<Link to="/search">Search
+Order</Link>{" "}
+ |<Link to="/delete">Delete Order</Link> |
+ <Link to="/update">Update Order</Link>
+ </nav>
+ <Routes>
+ <Route path="/add" element={<AddOrder />} />
+ <Route path="/search" element={<SearchOrder />} />
+ <Route path="/delete" element={<DeleteOrder />} />
+ <Route path="/update" element={<UpdateOrder />} />
+ </Routes>
+ </Router>
+ );
+}
+export default App;
+AddOrder:
+src/pages/AddOrder.js
+import React from "react";
+import { useForm } from "react-hook-form";
+import axios from "axios";
+function AddOrder() {
+ const {
+ register,
+ handleSubmit,
+ formState: { errors },
+ reset,
+ } = useForm();
+ const onSubmit = async (data) => {
+ try {
+ await axios.post("http://localhost:5000/api/orders", data);
+ alert("Order Added Successfully");
+ reset();
+ } catch (error) {
+ alert("Error adding order: " + error.response.data.error);
+ }
+ };
+ return (
+ <form onSubmit={handleSubmit(onSubmit)}>
+ <label>Order ID</label>
+ <input {...register("OrderID", { required: "Order ID is required"
+})} />
+ {errors.OrderID && <p>{errors.OrderID.message}</p>}
+ <label>Customer Name</label>
+ <input
+ {...register("CustomerName", { required: "Customer Name is
+required" })}
+ />
+ {errors.CustomerName && <p>{errors.CustomerName.message}</p>}
+ <label>Product</label>
+ <input {...register("Product", { required: "Product is required" })}
+/>
+ {errors.Product && <p>{errors.Product.message}</p>}
+ <label>Quantity</label>
+ <input
+ type="number"
+ {...register("Quantity", { required: "Quantity is required" })}
+ />
+ {errors.Quantity && <p>{errors.Quantity.message}</p>}
+ <label>Order Date</label>
+ <input
+ type="date"
+ {...register("OrderDate", { required: "Order Date is required" })}
+ />
+ {errors.OrderDate && <p>{errors.OrderDate.message}</p>}
+ <button type="submit">Add Order</button>
+ </form>
+ );
+}
+export default AddOrder;
+SearchOrder:
+src/pages/SearchOrder.js
+import React, { useState } from "react";
+import { useForm } from "react-hook-form";
+import axios from "axios";
+function SearchOrder() {
+ const {
+ register,
+ handleSubmit,
+ formState: { errors },
+ } = useForm();
+ const [order, setOrder] = useState(null);
+ const [error, setError] = useState(null);
+ const onSubmit = async ({ OrderID }) => {
+ try {
+ const response = await axios.get(
+ `http://localhost:5000/api/orders/${OrderID}`
+ );
+ setOrder(response.data);
+ setError(null);
+ } catch (err) {
+ setOrder(null);
+ setError("Order not found");
+ }
+ };
+ return (
+ <div>
+ <form onSubmit={handleSubmit(onSubmit)}>
+ <input
+ {...register("OrderID", { required: "Order ID is required" })}
+ placeholder="Enter Order ID"
+ />
+ {errors.OrderID && <p>{errors.OrderID.message}</p>}
+ <button type="submit">Search</button>
+ </form>
+ {error && <p>{error}</p>}
+ {order && (
+ <div>
+ <p>Customer Name: {order.CustomerName}</p>
+ <p>Product: {order.Product}</p>
+ <p>Quantity: {order.Quantity}</p>
+ <p>Order Date: {new
+Date(order.OrderDate).toLocaleDateString()}</p>
+ </div>
+ )}
+ </div>
+ );
+}
+export default SearchOrder;
+UpdateOrder:
+src/pages/UpdateOrder.js
+import React from "react";
+import { useForm } from "react-hook-form";
+import axios from "axios";
+function UpdateOrder() {
+ const {
+ register,
+ handleSubmit,
+ formState: { errors },
+ } = useForm();
+ const onSubmit = async ({ OrderID, Quantity }) => {
+ try {
+ await axios.put(`http://localhost:5000/api/orders/${OrderID}`, {
+ Quantity,
+ });
+ alert("Order updated successfully");
+ } catch (err) {
+ alert("Error: Order not found");
+ }
+ };
+ return (
+ <form onSubmit={handleSubmit(onSubmit)}>
+ <input
+ {...register("OrderID", { required: "Order ID is required" })}
+ placeholder="Enter Order ID"
+ />
+ {errors.OrderID && <p>{errors.OrderID.message}</p>}
+ <input
+ type="number"
+ {...register("Quantity", { required: "Quantity is required" })}
+ placeholder="Enter New Quantity"
+ />
+ {errors.Quantity && <p>{errors.Quantity.message}</p>}
+ <button type="submit">Update</button>
+ </form>
+ );
+}
+export default UpdateOrder;
+DeleteOrder:
+src/pages/DeleteOrder.js
+import React from "react";
+import { useForm } from "react-hook-form";
+import axios from "axios";
+function DeleteOrder() {
+ const {
+ register,
+ handleSubmit,
+ formState: { errors },
+ } = useForm();
+ const onSubmit = async ({ OrderID }) => {
+ try {
+ await axios.delete(`http://localhost:5000/api/orders/${OrderID}`);
+ alert("Order deleted successfully");
+ } catch (err) {
+ alert("Error: Order not found");
+ }
+ };
+ return (
+ <form onSubmit={handleSubmit(onSubmit)}>
+ <input
+ {...register("OrderID", { required: "Order ID is required" })}
+ placeholder="Enter Order ID"
+ />
+ {errors.OrderID && <p>{errors.OrderID.message}</p>}
+ <button type="submit">Delete</button>
+ </form>
+ );
+}
+export default DeleteOrder;
+Backend:
+index.js:
+const express = require("express");
+const mongoose = require("mongoose");
+const cors = require("cors");
+const Order = require("./Order");
+const app = express();
+const PORT = 5000;
+app.use(express.json());
+app.use(cors());
+mongoose
+ .connect("mongodb://localhost:27017/orders")
+ .then(() => console.log("MongoDB connected"))
+ .catch((err) => console.log(err));
+// Add Order
+app.post("/api/orders", async (req, res) => {
+ const { OrderID, CustomerName, Product, Quantity, OrderDate } =
+req.body;
+ try {
+ const newOrder = new Order({
+ OrderID,
+ CustomerName,
+ Product,
+ Quantity,
+ OrderDate,
+ });
+ const savedOrder = await newOrder.save();
+ res.status(201).json(savedOrder);
+ } catch (error) {
+ res.status(400).json({ error: error.message });
+ }
+});
+// Search Order by OrderID
+app.get("/api/orders/:id", async (req, res) => {
+ try {
+ const order = await Order.findOne({ OrderID: req.params.id });
+ if (order) {
+ res.json(order);
+ } else {
+ res.status(404).json({ message: "Order not found" });
+ }
+ } catch (error) {
+ res.status(400).json({ error: error.message });
+ }
+});
+// Delete Order by OrderID
+app.delete("/api/orders/:id", async (req, res) => {
+ try {
+ const deletedOrder = await Order.findOneAndDelete({
+ OrderID: req.params.id,
+ });
+ if (deletedOrder) {
+ res.json(deletedOrder);
+ } else {
+ res.status(404).json({ message: "Order not found" });
+ }
+ } catch (error) {
+ res.status(400).json({ error: error.message });
+ }
+});
+// Update Order Quantity by OrderID
+app.put("/api/orders/:id", async (req, res) => {
+ try {
+ const updatedOrder = await Order.findOneAndUpdate(
+ { OrderID: req.params.id },
+ { Quantity: req.body.Quantity },
+ { new: true }
+ );
+ if (updatedOrder) {
+ res.json(updatedOrder);
+ } else {
+ res.status(404).json({ message: "Order not found" });
+ }
+ } catch (error) {
+ res.status(400).json({ error: error.message });
+ }
+});
+app.listen(PORT, () => {
+ console.log(`Server running on port ${PORT}`);
+});
+Order.js:
+const mongoose = require("mongoose");
+const OrderSchema = new mongoose.Schema({
+ OrderID: { type: String, unique: true, required: true },
+ CustomerName: { type: String, required: true },
+ Product: { type: String, required: true },
+ Quantity: { type: Number, required: true },
+ OrderDate: { type: Date, required: true },
+});
+const Order = mongoose.model("Order", OrderSchema);
+module.exports = Order;
